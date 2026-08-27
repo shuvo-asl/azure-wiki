@@ -26,6 +26,16 @@ function ownerSelectCell(cls, selected = "") {
     .join("");
   return `<td class="py-1 px-2"><select class="${cls} w-full rounded border-slate-300 border p-1.5 bg-white">${options}</select></td>`;
 }
+// Fixed-choice <select> (e.g. delivery status). Keeps an unknown value as an option.
+const STATUS_OPTIONS = ["Delivered", "Carried over", "Dropped"];
+function selectCell(cls, choices, selected = "") {
+  const opts = [...choices];
+  if (selected && !opts.includes(selected)) opts.unshift(selected);
+  const options = opts
+    .map((v) => `<option value="${escapeAttr(v)}"${v === selected ? " selected" : ""}>${escapeHtml(v)}</option>`)
+    .join("");
+  return `<td class="py-1 px-2"><select class="${cls} w-full rounded border-slate-300 border p-1.5 bg-white">${options}</select></td>`;
+}
 function delCell() {
   return `<td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>`;
 }
@@ -73,7 +83,7 @@ const riskRow = (cls) =>
 
 const deliveredRow = (item = "", owner = "", status = "") =>
   row(
-    `${inputCellV("d-item", item)}${ownerSelectCell("d-owner", owner)}${inputCellV("d-status", status, "Delivered")}${delCell()}`,
+    `${inputCellV("d-item", item)}${ownerSelectCell("d-owner", owner)}${selectCell("d-status", STATUS_OPTIONS, status || "Delivered")}${delCell()}`,
     "delivered-row"
   );
 
