@@ -12,6 +12,20 @@ function inputCell(cls, placeholder = "") {
 function inputCellV(cls, value = "", placeholder = "") {
   return `<td class="py-1 px-2"><input class="${cls} w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(value)}" placeholder="${placeholder}" /></td>`;
 }
+// A <select> of the team roster. Keeps `selected` as an option even if it's
+// not in the roster (e.g. an owner pulled from planning who has since left).
+function ownerSelectCell(cls, selected = "") {
+  const names = [...roster];
+  if (selected && !names.includes(selected)) names.unshift(selected);
+  const options = ['<option value="">—</option>']
+    .concat(
+      names.map(
+        (n) => `<option value="${escapeAttr(n)}"${n === selected ? " selected" : ""}>${escapeHtml(n)}</option>`
+      )
+    )
+    .join("");
+  return `<td class="py-1 px-2"><select class="${cls} w-full rounded border-slate-300 border p-1.5 bg-white">${options}</select></td>`;
+}
 function delCell() {
   return `<td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>`;
 }
@@ -59,7 +73,7 @@ const riskRow = (cls) =>
 
 const deliveredRow = (item = "", owner = "", status = "") =>
   row(
-    `${inputCellV("d-item", item)}${inputCellV("d-owner", owner)}${inputCellV("d-status", status, "Delivered")}${delCell()}`,
+    `${inputCellV("d-item", item)}${ownerSelectCell("d-owner", owner)}${inputCellV("d-status", status, "Delivered")}${delCell()}`,
     "delivered-row"
   );
 
