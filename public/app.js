@@ -9,6 +9,9 @@ let roster = [];
 function inputCell(cls, placeholder = "") {
   return `<td class="py-1 px-2"><input class="${cls} w-full rounded border-slate-300 border p-1.5" placeholder="${placeholder}" /></td>`;
 }
+function inputCellV(cls, value = "", placeholder = "") {
+  return `<td class="py-1 px-2"><input class="${cls} w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(value)}" placeholder="${placeholder}" /></td>`;
+}
 function delCell() {
   return `<td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>`;
 }
@@ -54,8 +57,18 @@ const committedRow = () =>
 const riskRow = (cls) =>
   row(`${inputCell("r-owner")}${inputCell("r-issue")}${inputCell("r-next")}${delCell()}`, cls);
 
-const metricRow = () =>
-  row(`${inputCell("mt-metric")}${inputCell("mt-value")}${delCell()}`, "metric-row");
+const deliveredRow = (item = "", owner = "", status = "") =>
+  row(
+    `${inputCellV("d-item", item)}${inputCellV("d-owner", owner)}${inputCellV("d-status", status, "Delivered")}${delCell()}`,
+    "delivered-row"
+  );
+
+const retroRow = (name = "") =>
+  row(
+    `<td class="py-1 pr-2"><input class="rt-name w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(name)}" placeholder="Name" /></td>
+     ${inputCell("rt-well")}${inputCell("rt-wrong")}${inputCell("rt-challenge")}${inputCell("rt-improve")}${delCell()}`,
+    "retro-row"
+  );
 
 function actionRow() {
   const div = document.createElement("div");
@@ -73,7 +86,8 @@ const ADDERS = {
   prisk: () => $("priskRows").appendChild(riskRow("prisk-row")),
   capacity: () => $("capacityRows").appendChild(capacityRow()),
   committed: () => $("committedRows").appendChild(committedRow()),
-  metric: () => $("metricRows").appendChild(metricRow()),
+  delivered: () => $("deliveredRows").appendChild(deliveredRow("", "", "Delivered")),
+  retro: () => $("retroRows").appendChild(retroRow()),
   action: (btn) => $(btn.dataset.target).appendChild(actionRow()),
 };
 
@@ -141,14 +155,20 @@ function gather() {
   // r2r
   return {
     ...base,
-    delivered: lines($("delivered").value),
-    metrics: [...document.querySelectorAll(".metric-row")].map((tr) => ({
-      metric: val(tr, ".mt-metric"),
-      value: val(tr, ".mt-value"),
+    delivered: [...document.querySelectorAll(".delivered-row")].map((tr) => ({
+      item: val(tr, ".d-item"),
+      owner: val(tr, ".d-owner"),
+      status: val(tr, ".d-status"),
     })),
-    wentWell: lines($("wentWell").value),
-    wentWrong: lines($("wentWrong").value),
-    improvements: lines($("improvements").value),
+    retro: [...document.querySelectorAll(".retro-row")]
+      .map((tr) => ({
+        name: val(tr, ".rt-name"),
+        wentWell: val(tr, ".rt-well"),
+        wentWrong: val(tr, ".rt-wrong"),
+        challenge: val(tr, ".rt-challenge"),
+        improvements: val(tr, ".rt-improve"),
+      }))
+      .filter((r) => r.name !== ""),
     actionItems: [...document.querySelectorAll("#r2rActionRows .action-row")].map((d) => val(d, ".a-text")),
   };
 }
@@ -195,8 +215,10 @@ async function init() {
   } catch (_) { roster = []; }
   roster.forEach((n) => $("memberRows").appendChild(memberRow(n)));
   roster.forEach((n) => $("capacityRows").appendChild(capacityRow(n)));
+  roster.forEach((n) => $("retroRows").appendChild(retroRow(n)));
   if (!$("memberRows").children.length) $("memberRows").appendChild(memberRow());
   if (!$("capacityRows").children.length) $("capacityRows").appendChild(capacityRow());
+  if (!$("retroRows").children.length) $("retroRows").appendChild(retroRow());
 
   // Sprints
   const sel = $("sprintSelect");
@@ -220,7 +242,7 @@ async function init() {
   toggleOther();
 
   // Wiring
-  sel.addEventListener("change", () => { toggleOther(); updatePath(); });
+  sel.addEventListener("change", () => { toggleOther(); updatePath(); loadDelivered(); });
   $("sprintOther").addEventListener("input", updatePath);
   $("dayNo").addEventListener("input", updatePath);
   $("pageType").addEventListener("change", applyType);
@@ -240,6 +262,28 @@ function applyType() {
   );
   $("dayWrap").classList.toggle("hidden", t !== "daily");
   updatePath();
+  if (t === "r2r") loadDelivered();
+}
+
+// Pre-fill the R2r "Delivered" table from the selected sprint's planning page.
+async function loadDelivered() {
+  if (pageType() !== "r2r") return;
+  const tbody = $("deliveredRows");
+  const hint = $("deliveredHint");
+  const code = sprintCode();
+  tbody.innerHTML = "";
+  if (code) {
+    try {
+      const { items } = await api(`/api/planning-items?sprintCode=${encodeURIComponent(code)}`);
+      (items || []).forEach((it) => tbody.appendChild(deliveredRow(it.item, it.owner, "Delivered")));
+      hint.textContent = items && items.length
+        ? `Loaded ${items.length} committed item(s) from Sprint ${code} planning. Edit status or add out-of-plan items.`
+        : `No committed backlog found in Sprint ${code} planning — add delivered items manually.`;
+    } catch (_) {
+      hint.textContent = "Couldn't load planning items (check ADO config) — add delivered items manually.";
+    }
+  }
+  if (!tbody.children.length) tbody.appendChild(deliveredRow("", "", "Delivered"));
 }
 
 function toggleOther() {

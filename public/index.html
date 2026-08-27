@@ -197,46 +197,49 @@
         <!-- =============== R2R =============== -->
         <div data-type="r2r" class="space-y-6 hidden">
           <section class="bg-white rounded-xl shadow-sm p-5">
-            <label class="font-semibold text-slate-900 block mb-1">📦 Sprint Review — Delivered</label>
-            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
-            <textarea id="delivered" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
-          </section>
-
-          <section class="bg-white rounded-xl shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-slate-900">📊 Metrics</h2>
-              <button type="button" data-add="metric" class="text-sm text-indigo-600 hover:underline">+ Add metric</button>
+              <h2 class="font-semibold text-slate-900">📦 Sprint Review — Delivered</h2>
+              <button type="button" data-add="delivered" class="text-sm text-indigo-600 hover:underline">+ Add item</button>
             </div>
+            <p id="deliveredHint" class="text-xs text-slate-500 mb-2">
+              Auto-filled from the selected sprint's Sprint Planning. Add any out-of-plan items.
+            </p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="text-left text-slate-500">
-                    <th class="py-1 pr-2 font-medium">Metric</th>
-                    <th class="py-1 px-2 font-medium w-40">Value</th>
+                    <th class="py-1 pr-2 font-medium">Item</th>
+                    <th class="py-1 px-2 font-medium w-32">Owner</th>
+                    <th class="py-1 px-2 font-medium w-36">Status</th>
                     <th class="w-6"></th>
                   </tr>
                 </thead>
-                <tbody id="metricRows"></tbody>
+                <tbody id="deliveredRows"></tbody>
               </table>
             </div>
           </section>
 
           <section class="bg-white rounded-xl shadow-sm p-5">
-            <label class="font-semibold text-slate-900 block mb-1">😀 What Went Well</label>
-            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
-            <textarea id="wentWell" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
-          </section>
-
-          <section class="bg-white rounded-xl shadow-sm p-5">
-            <label class="font-semibold text-slate-900 block mb-1">😕 What Didn't Go Well</label>
-            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
-            <textarea id="wentWrong" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
-          </section>
-
-          <section class="bg-white rounded-xl shadow-sm p-5">
-            <label class="font-semibold text-slate-900 block mb-1">💡 Improvements</label>
-            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
-            <textarea id="improvements" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">🔁 Retrospective</h2>
+              <button type="button" data-add="retro" class="text-sm text-indigo-600 hover:underline">+ Add member</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-2">Four questions, per team member.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium w-28">Member</th>
+                    <th class="py-1 px-2 font-medium">What Went Well</th>
+                    <th class="py-1 px-2 font-medium">What Didn't Go Well</th>
+                    <th class="py-1 px-2 font-medium">Any Challenge</th>
+                    <th class="py-1 px-2 font-medium">Improvements</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="retroRows"></tbody>
+              </table>
+            </div>
           </section>
 
           <section class="bg-white rounded-xl shadow-sm p-5">

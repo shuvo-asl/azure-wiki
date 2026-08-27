@@ -1,7 +1,7 @@
 // Thin wrapper around the Azure DevOps Wiki REST API (api-version 7.1).
 // Docs verified: PUT create/update, GET page/list, HTTP Basic with a PAT.
 
-import { rootPath, sprintPath } from "./paths.js";
+import { rootPath, sprintPath, buildPath } from "./paths.js";
 
 const API_VERSION = "7.1";
 
@@ -81,6 +81,39 @@ export async function listSprints(limit = 3) {
     .map(({ sprintCode, label }) => ({ sprintCode, label }));
 
   return sprints;
+}
+
+// Read the committed backlog items from a sprint's "Sprint Planning" page,
+// so the R2r "Delivered" section can be pre-filled. Returns [] if no page.
+export async function getPlanningItems(sprintCode) {
+  const planningPath = buildPath("planning", { sprintCode });
+  const { exists, content } = await getPage(planningPath, { includeContent: true });
+  if (!exists || !content) return [];
+  return parseCommittedBacklog(content);
+}
+
+// Parse the "Committed Backlog" markdown table -> [{ item, owner, estimate }].
+export function parseCommittedBacklog(md) {
+  const lines = md.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^#{1,6}\s+.*committed backlog/i.test(l));
+  if (start === -1) return [];
+
+  const items = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith("##") || line === "---") break; // next section
+    if (!line.startsWith("|")) {
+      if (items.length) break; // table ended
+      continue; // still before the table
+    }
+    if (/^\|\s*-{2,}/.test(line)) continue; // separator row
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    const [item = "", owner = "", estimate = ""] = cells;
+    if (/^item$/i.test(item)) continue; // header row
+    if (!item || item === "–" || /^\*\[/.test(item)) continue; // empty / placeholder
+    items.push({ item, owner, estimate });
+  }
+  return items;
 }
 
 // Make sure the "Sprint <code>" parent page exists (ADO also auto-creates

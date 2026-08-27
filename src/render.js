@@ -123,26 +123,36 @@ function withPlanningDefaults(data) {
 }
 
 function withR2rDefaults(data) {
-  let metrics = (data.metrics || [])
-    .filter((m) => (m.metric || m.value || "").trim() !== "")
-    .map((m) => ({ metric: emptyDash(m.metric), value: emptyDash(m.value) }));
-  if (metrics.length === 0)
-    metrics = [{ metric: "*[e.g. Committed vs Completed]*", value: "–" }];
+  let delivered = (data.delivered || [])
+    .filter((d) => (d.item || d.owner || d.status || "").trim() !== "")
+    .map((d) => ({
+      item: emptyDash(d.item),
+      owner: emptyDash(d.owner),
+      status: emptyDash(d.status),
+    }));
+  if (delivered.length === 0)
+    delivered = [{ item: "*[List delivered items]*", owner: "–", status: "–" }];
 
-  const orDefault = (list, placeholder) => {
-    const c = clean(list);
-    return c.length ? c : [placeholder];
-  };
+  let retro = (data.retro || [])
+    .filter((m) => (m.name || "").trim() !== "")
+    .map((m) => ({
+      name: m.name.trim(),
+      wentWell: emptyDash(m.wentWell),
+      wentWrong: emptyDash(m.wentWrong),
+      challenge: emptyDash(m.challenge),
+      improvements: emptyDash(m.improvements),
+    }));
+  if (retro.length === 0)
+    retro = [{ name: "–", wentWell: "–", wentWrong: "–", challenge: "–", improvements: "–" }];
+
+  const actionItems = clean(data.actionItems);
 
   return {
     sprintCode: data.sprintCode,
     date: data.date || formatDate(),
-    delivered: orDefault(data.delivered, "*[List what was delivered / demoed]*"),
-    metrics,
-    wentWell: orDefault(data.wentWell, "*[What went well?]*"),
-    wentWrong: orDefault(data.wentWrong, "*[What could be improved?]*"),
-    improvements: orDefault(data.improvements, "*[Ideas / experiments for next sprint]*"),
-    actionItems: orDefault(data.actionItems, "*[Only add if follow-up is needed]*"),
+    delivered,
+    retro,
+    actionItems: actionItems.length ? actionItems : ["*[Only add if follow-up is needed]*"],
   };
 }
 

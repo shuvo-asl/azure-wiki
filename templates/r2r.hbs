@@ -4,39 +4,21 @@
 ---
 
 ## 📦 Sprint Review — Delivered
+
+| Item | Owner | Status |
+|------|-------|--------|
 {{#each delivered}}
-- {{this}}
+| {{item}} | {{owner}} | {{status}} |
 {{/each}}
 
 ---
 
-## 📊 Metrics
+## 🔁 Retrospective
 
-| Metric | Value |
-|--------|-------|
-{{#each metrics}}
-| {{metric}} | {{value}} |
-{{/each}}
-
----
-
-## 😀 What Went Well
-{{#each wentWell}}
-- {{this}}
-{{/each}}
-
----
-
-## 😕 What Didn't Go Well
-{{#each wentWrong}}
-- {{this}}
-{{/each}}
-
----
-
-## 💡 Improvements
-{{#each improvements}}
-- {{this}}
+| Member | What Went Well | What Didn't Go Well | Any Challenge | Improvements |
+|--------|----------------|---------------------|---------------|--------------|
+{{#each retro}}
+| {{name}} | {{wentWell}} | {{wentWrong}} | {{challenge}} | {{improvements}} |
 {{/each}}
 
 ---

@@ -13,11 +13,17 @@ Pick the type in the form; each renders its own template and publishes under `Sp
 |------|-----------|----------|----------|
 | **Daily Standup** | `Day - <n>` | `templates/daily.hbs` | Team Progress, Focus Areas, Blockers/Risks, Decisions, Action Items |
 | **Sprint Planning** | `Sprint Planning` | `templates/planning.hbs` | Sprint Goal, Capacity, Committed Backlog, Risks/Dependencies |
-| **Sprint Review & Retro** | `Sprint R2r` | `templates/r2r.hbs` | Delivered, Metrics, Went Well, Didn't Go Well, Improvements, Action Items |
+| **Sprint Review & Retro** | `Sprint R2r` | `templates/r2r.hbs` | Delivered (table), Retrospective (per-member: Went Well / Didn't Go Well / Any Challenge / Improvements), Action Items |
 
 Only **Daily** takes a day number; Planning and R2r are one page per sprint. All templates are
 Handlebars files — edit wording/structure without touching code. Empty sections fall back to sensible
 placeholder rows.
+
+**R2r auto-fill:** when you pick a sprint for a Review & Retrospective, the app reads that sprint's
+**Sprint Planning** page (`GET /api/planning-items`), parses the **Committed Backlog** table, and
+pre-fills the **Delivered** section (Item / Owner, status defaulting to `Delivered`). Add any
+out-of-plan items manually. The four retrospective questions are asked **per team member** (roster
+from `config/team.json`).
 
 ## Quick start
 
@@ -102,7 +108,8 @@ npm run build:css && npm start
 
 | Endpoint          | Purpose                                             |
 |-------------------|-----------------------------------------------------|
-| `GET /api/team`   | Roster for the Team Progress rows                   |
+| `GET /api/team`   | Roster for the Team Progress / Capacity / Retro rows |
 | `GET /api/sprints`| Latest 3 sprints for the dropdown                   |
+| `GET /api/planning-items` | Committed backlog items from a sprint's planning page (pre-fills R2r Delivered) |
 | `GET /api/exists` | Overwrite check for a computed page path            |
 | `POST /api/publish` | Render + create/update the page                   |

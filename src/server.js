@@ -11,6 +11,7 @@ import {
   getPage,
   ensureParents,
   createOrUpdate,
+  getPlanningItems,
 } from "./adoClient.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,6 +38,18 @@ app.get("/api/sprints", async (_req, res) => {
   try {
     const sprints = await listSprints(3);
     res.json({ sprints });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// --- Committed backlog items from a sprint's planning page (pre-fills R2r Delivered) ---
+app.get("/api/planning-items", async (req, res) => {
+  const { sprintCode } = req.query;
+  if (!sprintCode) return res.status(400).json({ error: "sprintCode is required" });
+  try {
+    const items = await getPlanningItems(String(sprintCode).trim());
+    res.json({ items });
   } catch (err) {
     res.status(502).json({ error: err.message });
   }
