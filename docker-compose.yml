@@ -1,0 +1,14 @@
+services:
+  standup:
+    build: .
+    container_name: az-wiki-standup
+    env_file: .env
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      # Tweak the template and roster without rebuilding the image
+      - ./templates:/app/templates:ro
+      - ./config:/app/config:ro
+    restart: always

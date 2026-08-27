@@ -1,0 +1,27 @@
+{
+  "name": "az-wiki-standup-publisher",
+  "version": "1.0.0",
+  "description": "Fill a form and publish daily standups to an Azure DevOps project wiki via the REST API.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "concurrently -k -n css,server -c blue,green \"npm:watch:css\" \"npm:dev:server\"",
+    "dev:server": "nodemon --legacy-watch --watch src --ext js,json src/server.js",
+    "build:css": "tailwindcss -i ./src/styles.input.css -o ./public/styles.css --minify",
+    "watch:css": "tailwindcss -i ./src/styles.input.css -o ./public/styles.css --watch --poll"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "nodemon": "^3.1.4",
+    "tailwindcss": "^3.4.10"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

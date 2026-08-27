@@ -1,0 +1,21 @@
+# Development overrides — applied AUTOMATICALLY by `docker compose up`.
+# Gives live reload: edits to src/, public/, templates/, config/ and CSS
+# are reflected in the running container without a rebuild.
+#
+# For a production-style run WITHOUT these overrides, use:
+#   docker compose -f docker-compose.yml up --build
+services:
+  standup:
+    # Run the watchers (nodemon + tailwind --watch) instead of `node src/server.js`
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      # Helps file-watchers get change events across the Docker bind mount on macOS/Windows
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      # Mount source so host edits appear inside the container immediately.
+      # node_modules is NOT mounted, so the container keeps its own Linux install.
+      - ./src:/app/src
+      - ./public:/app/public
+      # templates/ and config/ are already mounted (read-only) in the base file;
+      # they're read fresh per request, so edits reflect with no restart.

@@ -1,0 +1,43 @@
+# Daily Stand-up – Sprint {{sprintCode}}
+**Date:** {{date}} | **Timebox:** 15 min
+
+---
+
+## 👥 Team Progress
+
+| Member | Yesterday | Today | Blockers |
+|--------|-----------|-------|----------|
+{{#each members}}
+| {{name}} | {{yesterday}} | {{today}} | {{blockers}} |
+{{/each}}
+
+---
+
+## 🚧 Focus Areas
+{{#each focusAreas}}
+- {{this}}
+{{/each}}
+
+---
+
+## 🚫 Blockers / Risks
+
+| Owner | Issue | Next Action |
+|-------|-------|-------------|
+{{#each risks}}
+| {{owner}} | {{issue}} | {{nextAction}} |
+{{/each}}
+
+---
+
+## 📋 Decisions Made
+{{#each decisions}}
+- {{this}}
+{{/each}}
+
+---
+
+## ✅ Action Items
+{{#each actionItems}}
+- [ ] {{this}}
+{{/each}}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Standup Publisher · Azure DevOps Wiki</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>"
+    />
+  </head>
+  <body class="bg-slate-100 text-slate-800 min-h-screen">
+    <div class="max-w-4xl mx-auto p-4 sm:p-8">
+      <header class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          📝 Daily Standup Publisher
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">
+          Fill the form and publish straight to the Azure DevOps project wiki.
+        </p>
+      </header>
+
+      <form id="standup-form" class="space-y-6">
+        <!-- Top controls -->
+        <section class="bg-white rounded-xl shadow-sm p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Page type</label>
+            <select id="pageType" class="w-full rounded-lg border-slate-300 border p-2 bg-slate-50">
+              <option value="daily">Daily Standup</option>
+              <option value="planning" disabled>Sprint Planning (soon)</option>
+              <option value="r2r" disabled>Sprint R2r (soon)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Sprint</label>
+            <select id="sprintSelect" class="w-full rounded-lg border-slate-300 border p-2">
+              <option value="">Loading…</option>
+            </select>
+            <input
+              id="sprintOther"
+              type="text"
+              placeholder="Sprint code, e.g. 0805"
+              class="w-full mt-2 rounded-lg border-slate-300 border p-2 hidden"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Day no</label>
+            <input
+              id="dayNo"
+              type="number"
+              min="1"
+              value="1"
+              class="w-full rounded-lg border-slate-300 border p-2"
+            />
+          </div>
+        </section>
+
+        <!-- Team progress -->
+        <section class="bg-white rounded-xl shadow-sm p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-900">👥 Team Progress</h2>
+            <button type="button" id="addMember" class="text-sm text-indigo-600 hover:underline">
+              + Add member
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-slate-500">
+                  <th class="py-1 pr-2 font-medium w-28">Member</th>
+                  <th class="py-1 px-2 font-medium">Yesterday</th>
+                  <th class="py-1 px-2 font-medium">Today</th>
+                  <th class="py-1 px-2 font-medium">Blockers</th>
+                  <th class="py-1 pl-2 font-medium w-24 text-center">On&nbsp;leave</th>
+                  <th class="w-6"></th>
+                </tr>
+              </thead>
+              <tbody id="memberRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Focus areas -->
+        <section class="bg-white rounded-xl shadow-sm p-5">
+          <label class="font-semibold text-slate-900 block mb-1">🚧 Focus Areas</label>
+          <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+          <textarea
+            id="focusAreas"
+            rows="3"
+            class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"
+            placeholder="Client flight transfer implementation&#10;Centralize flight matching engine"
+          ></textarea>
+        </section>
+
+        <!-- Blockers / risks -->
+        <section class="bg-white rounded-xl shadow-sm p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-900">🚫 Blockers / Risks</h2>
+            <button type="button" id="addRisk" class="text-sm text-indigo-600 hover:underline">
+              + Add risk
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-slate-500">
+                  <th class="py-1 pr-2 font-medium w-32">Owner</th>
+                  <th class="py-1 px-2 font-medium">Issue</th>
+                  <th class="py-1 px-2 font-medium">Next Action</th>
+                  <th class="w-6"></th>
+                </tr>
+              </thead>
+              <tbody id="riskRows"></tbody>
+            </table>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">Leave empty to publish the default “None” row.</p>
+        </section>
+
+        <!-- Decisions -->
+        <section class="bg-white rounded-xl shadow-sm p-5">
+          <label class="font-semibold text-slate-900 block mb-1">📋 Decisions Made</label>
+          <p class="text-xs text-slate-500 mb-2">One item per line. Leave empty for the default placeholder.</p>
+          <textarea
+            id="decisions"
+            rows="2"
+            class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"
+          ></textarea>
+        </section>
+
+        <!-- Action items -->
+        <section class="bg-white rounded-xl shadow-sm p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-900">✅ Action Items</h2>
+            <button type="button" id="addAction" class="text-sm text-indigo-600 hover:underline">
+              + Add action
+            </button>
+          </div>
+          <div id="actionRows" class="space-y-2"></div>
+          <p class="text-xs text-slate-400 mt-2">Leave empty for the default placeholder.</p>
+        </section>
+
+        <!-- Submit -->
+        <div class="flex items-center gap-3">
+          <button
+            type="submit"
+            id="publishBtn"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-5 py-2.5 disabled:opacity-50"
+          >
+            Publish to Wiki
+          </button>
+          <span id="targetPath" class="text-sm text-slate-500 font-mono"></span>
+        </div>
+
+        <div id="result" class="hidden rounded-lg p-4 text-sm"></div>
+      </form>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
