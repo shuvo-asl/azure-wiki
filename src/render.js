@@ -12,8 +12,8 @@ const TEMPLATES_DIR = path.join(__dirname, "..", "templates");
 
 const registry = {
   daily: "daily.hbs",
-  // planning: "planning.hbs",
-  // r2r: "r2r.hbs",
+  planning: "planning.hbs",
+  r2r: "r2r.hbs",
 };
 
 // Format a Date as e.g. "27 August 2026".
@@ -43,14 +43,7 @@ function withDailyDefaults(data) {
 
   const focusAreas = clean(data.focusAreas);
 
-  let risks = (data.risks || [])
-    .filter((r) => (r.owner || r.issue || r.nextAction || "").trim() !== "")
-    .map((r) => ({
-      owner: emptyDash(r.owner),
-      issue: r.issue?.trim() || "None",
-      nextAction: emptyDash(r.nextAction),
-    }));
-  if (risks.length === 0) risks = [{ owner: "–", issue: "None", nextAction: "–" }];
+  const risks = normalizeRisks(data.risks);
 
   let decisions = clean(data.decisions);
   if (decisions.length === 0)
@@ -84,8 +77,79 @@ function clean(list) {
     .filter((x) => x !== "");
 }
 
+// Shared: normalize a Blockers/Risks table, defaulting to the "None" row.
+function normalizeRisks(list) {
+  let risks = (list || [])
+    .filter((r) => (r.owner || r.issue || r.nextAction || "").trim() !== "")
+    .map((r) => ({
+      owner: emptyDash(r.owner),
+      issue: r.issue?.trim() || "None",
+      nextAction: emptyDash(r.nextAction),
+    }));
+  if (risks.length === 0) risks = [{ owner: "–", issue: "None", nextAction: "–" }];
+  return risks;
+}
+
+function withPlanningDefaults(data) {
+  let capacity = (data.capacity || [])
+    .filter((m) => (m.name || "").trim() !== "")
+    .map((m) => ({
+      name: m.name.trim(),
+      days: emptyDash(m.days),
+      notes: emptyDash(m.notes),
+    }));
+  if (capacity.length === 0) capacity = [{ name: "–", days: "–", notes: "–" }];
+
+  let committedItems = (data.committedItems || [])
+    .filter((i) => (i.item || i.owner || i.estimate || "").trim() !== "")
+    .map((i) => ({
+      item: emptyDash(i.item),
+      owner: emptyDash(i.owner),
+      estimate: emptyDash(i.estimate),
+    }));
+  if (committedItems.length === 0)
+    committedItems = [
+      { item: "*[Add committed backlog items]*", owner: "–", estimate: "–" },
+    ];
+
+  return {
+    sprintCode: data.sprintCode,
+    date: data.date || formatDate(),
+    sprintGoal: (data.sprintGoal || "").trim() || "*[Define the sprint goal]*",
+    capacity,
+    committedItems,
+    risks: normalizeRisks(data.risks),
+  };
+}
+
+function withR2rDefaults(data) {
+  let metrics = (data.metrics || [])
+    .filter((m) => (m.metric || m.value || "").trim() !== "")
+    .map((m) => ({ metric: emptyDash(m.metric), value: emptyDash(m.value) }));
+  if (metrics.length === 0)
+    metrics = [{ metric: "*[e.g. Committed vs Completed]*", value: "–" }];
+
+  const orDefault = (list, placeholder) => {
+    const c = clean(list);
+    return c.length ? c : [placeholder];
+  };
+
+  return {
+    sprintCode: data.sprintCode,
+    date: data.date || formatDate(),
+    delivered: orDefault(data.delivered, "*[List what was delivered / demoed]*"),
+    metrics,
+    wentWell: orDefault(data.wentWell, "*[What went well?]*"),
+    wentWrong: orDefault(data.wentWrong, "*[What could be improved?]*"),
+    improvements: orDefault(data.improvements, "*[Ideas / experiments for next sprint]*"),
+    actionItems: orDefault(data.actionItems, "*[Only add if follow-up is needed]*"),
+  };
+}
+
 const defaulters = {
   daily: withDailyDefaults,
+  planning: withPlanningDefaults,
+  r2r: withR2rDefaults,
 };
 
 export function render(pageType, data) {

@@ -1,60 +1,81 @@
-// Frontend logic for the standup publisher.
+// Frontend logic for the sprint wiki publisher (daily / planning / r2r).
 
 const $ = (id) => document.getElementById(id);
 const OTHER = "__other__";
+let roster = [];
 
 // ---- Row builders -------------------------------------------------------
 
-function memberRow(name = "") {
+function inputCell(cls, placeholder = "") {
+  return `<td class="py-1 px-2"><input class="${cls} w-full rounded border-slate-300 border p-1.5" placeholder="${placeholder}" /></td>`;
+}
+function delCell() {
+  return `<td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>`;
+}
+function wireDel(el) {
+  el.querySelector(".del").addEventListener("click", () => el.remove());
+  return el;
+}
+function row(html, cls) {
   const tr = document.createElement("tr");
-  tr.className = "border-t border-slate-100 member-row";
-  tr.innerHTML = `
-    <td class="py-1 pr-2">
-      <input class="m-name w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(name)}" placeholder="Name" />
-    </td>
-    <td class="py-1 px-2"><input class="m-yesterday w-full rounded border-slate-300 border p-1.5" /></td>
-    <td class="py-1 px-2"><input class="m-today w-full rounded border-slate-300 border p-1.5" /></td>
-    <td class="py-1 px-2"><input class="m-blockers w-full rounded border-slate-300 border p-1.5" placeholder="None" /></td>
-    <td class="py-1 pl-2 text-center"><input type="checkbox" class="m-leave h-4 w-4" /></td>
-    <td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>
-  `;
+  tr.className = "border-t border-slate-100 " + cls;
+  tr.innerHTML = html;
+  return wireDel(tr);
+}
+
+function memberRow(name = "") {
+  const tr = row(
+    `<td class="py-1 pr-2"><input class="m-name w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(name)}" placeholder="Name" /></td>
+     ${inputCell("m-yesterday")}${inputCell("m-today")}${inputCell("m-blockers", "None")}
+     <td class="py-1 pl-2 text-center"><input type="checkbox" class="m-leave h-4 w-4" /></td>${delCell()}`,
+    "member-row"
+  );
   const leave = tr.querySelector(".m-leave");
   leave.addEventListener("change", () => {
-    const disabled = leave.checked;
     ["m-yesterday", "m-today", "m-blockers"].forEach((c) => {
       const el = tr.querySelector("." + c);
-      el.disabled = disabled;
-      el.classList.toggle("bg-slate-100", disabled);
+      el.disabled = leave.checked;
+      el.classList.toggle("bg-slate-100", leave.checked);
     });
   });
-  tr.querySelector(".del").addEventListener("click", () => tr.remove());
   return tr;
 }
 
-function riskRow() {
-  const tr = document.createElement("tr");
-  tr.className = "border-t border-slate-100 risk-row";
-  tr.innerHTML = `
-    <td class="py-1 pr-2"><input class="r-owner w-full rounded border-slate-300 border p-1.5" /></td>
-    <td class="py-1 px-2"><input class="r-issue w-full rounded border-slate-300 border p-1.5" /></td>
-    <td class="py-1 px-2"><input class="r-next w-full rounded border-slate-300 border p-1.5" /></td>
-    <td class="py-1 text-center"><button type="button" class="del text-slate-400 hover:text-red-500">✕</button></td>
-  `;
-  tr.querySelector(".del").addEventListener("click", () => tr.remove());
-  return tr;
-}
+const capacityRow = (name = "") =>
+  row(
+    `<td class="py-1 pr-2"><input class="c-name w-full rounded border-slate-300 border p-1.5" value="${escapeAttr(name)}" placeholder="Name" /></td>
+     ${inputCell("c-days", "e.g. 8")}${inputCell("c-notes")}${delCell()}`,
+    "capacity-row"
+  );
+
+const committedRow = () =>
+  row(`${inputCell("ci-item")}${inputCell("ci-owner")}${inputCell("ci-estimate")}${delCell()}`, "committed-row");
+
+const riskRow = (cls) =>
+  row(`${inputCell("r-owner")}${inputCell("r-issue")}${inputCell("r-next")}${delCell()}`, cls);
+
+const metricRow = () =>
+  row(`${inputCell("mt-metric")}${inputCell("mt-value")}${delCell()}`, "metric-row");
 
 function actionRow() {
   const div = document.createElement("div");
   div.className = "flex items-center gap-2 action-row";
-  div.innerHTML = `
-    <span class="text-slate-400 text-sm">[ ]</span>
+  div.innerHTML = `<span class="text-slate-400 text-sm">[ ]</span>
     <input class="a-text flex-1 rounded border-slate-300 border p-1.5" placeholder="Action item" />
-    <button type="button" class="del text-slate-400 hover:text-red-500">✕</button>
-  `;
-  div.querySelector(".del").addEventListener("click", () => div.remove());
-  return div;
+    <button type="button" class="del text-slate-400 hover:text-red-500">✕</button>`;
+  return wireDel(div);
 }
+
+// data-add value -> how to append a row
+const ADDERS = {
+  member: () => $("memberRows").appendChild(memberRow()),
+  risk: () => $("riskRows").appendChild(riskRow("risk-row")),
+  prisk: () => $("priskRows").appendChild(riskRow("prisk-row")),
+  capacity: () => $("capacityRows").appendChild(capacityRow()),
+  committed: () => $("committedRows").appendChild(committedRow()),
+  metric: () => $("metricRows").appendChild(metricRow()),
+  action: (btn) => $(btn.dataset.target).appendChild(actionRow()),
+};
 
 // ---- Data gathering -----------------------------------------------------
 
@@ -62,36 +83,73 @@ function sprintCode() {
   const sel = $("sprintSelect").value;
   return sel === OTHER ? $("sprintOther").value.trim() : sel.trim();
 }
+function pageType() {
+  return $("pageType").value;
+}
 
-function gather() {
-  const members = [...document.querySelectorAll(".member-row")].map((tr) => {
-    const leave = tr.querySelector(".m-leave").checked;
-    if (leave) return { name: val(tr, ".m-name"), yesterday: "On Leave", today: "On Leave", blockers: "–" };
-    return {
-      name: val(tr, ".m-name"),
-      yesterday: val(tr, ".m-yesterday"),
-      today: val(tr, ".m-today"),
-      blockers: val(tr, ".m-blockers"),
-    };
-  }).filter((m) => m.name !== "");
-
-  const risks = [...document.querySelectorAll(".risk-row")].map((tr) => ({
+function gatherRisks(selector) {
+  return [...document.querySelectorAll(selector)].map((tr) => ({
     owner: val(tr, ".r-owner"),
     issue: val(tr, ".r-issue"),
     nextAction: val(tr, ".r-next"),
   }));
+}
 
-  const actionItems = [...document.querySelectorAll(".action-row")].map((d) => val(d, ".a-text"));
+function gather() {
+  const base = { pageType: pageType(), sprintCode: sprintCode() };
 
+  if (base.pageType === "daily") {
+    const members = [...document.querySelectorAll(".member-row")]
+      .map((tr) => {
+        if (tr.querySelector(".m-leave").checked)
+          return { name: val(tr, ".m-name"), yesterday: "On Leave", today: "On Leave", blockers: "–" };
+        return {
+          name: val(tr, ".m-name"),
+          yesterday: val(tr, ".m-yesterday"),
+          today: val(tr, ".m-today"),
+          blockers: val(tr, ".m-blockers"),
+        };
+      })
+      .filter((m) => m.name !== "");
+    return {
+      ...base,
+      dayNo: $("dayNo").value,
+      members,
+      focusAreas: lines($("focusAreas").value),
+      risks: gatherRisks(".risk-row"),
+      decisions: lines($("decisions").value),
+      actionItems: [...document.querySelectorAll("#actionRows .action-row")].map((d) => val(d, ".a-text")),
+    };
+  }
+
+  if (base.pageType === "planning") {
+    return {
+      ...base,
+      sprintGoal: $("sprintGoal").value.trim(),
+      capacity: [...document.querySelectorAll(".capacity-row")]
+        .map((tr) => ({ name: val(tr, ".c-name"), days: val(tr, ".c-days"), notes: val(tr, ".c-notes") }))
+        .filter((m) => m.name !== ""),
+      committedItems: [...document.querySelectorAll(".committed-row")].map((tr) => ({
+        item: val(tr, ".ci-item"),
+        owner: val(tr, ".ci-owner"),
+        estimate: val(tr, ".ci-estimate"),
+      })),
+      risks: gatherRisks(".prisk-row"),
+    };
+  }
+
+  // r2r
   return {
-    pageType: $("pageType").value,
-    sprintCode: sprintCode(),
-    dayNo: $("dayNo").value,
-    members,
-    focusAreas: lines($("focusAreas").value),
-    risks,
-    decisions: lines($("decisions").value),
-    actionItems,
+    ...base,
+    delivered: lines($("delivered").value),
+    metrics: [...document.querySelectorAll(".metric-row")].map((tr) => ({
+      metric: val(tr, ".mt-metric"),
+      value: val(tr, ".mt-value"),
+    })),
+    wentWell: lines($("wentWell").value),
+    wentWrong: lines($("wentWrong").value),
+    improvements: lines($("improvements").value),
+    actionItems: [...document.querySelectorAll("#r2rActionRows .action-row")].map((d) => val(d, ".a-text")),
   };
 }
 
@@ -101,18 +159,15 @@ async function publish(e) {
   e.preventDefault();
   const data = gather();
   if (!data.sprintCode) return showResult("error", "Please choose or enter a sprint.");
-  if (!data.dayNo) return showResult("error", "Please enter a day number.");
+  if (data.pageType === "daily" && !data.dayNo) return showResult("error", "Please enter a day number.");
 
   setBusy(true);
   try {
-    // Overwrite warning (skipped gracefully if the check fails, e.g. dry-run offline)
     try {
-      const ex = await api(
-        `/api/exists?pageType=${data.pageType}&sprintCode=${encodeURIComponent(data.sprintCode)}&dayNo=${encodeURIComponent(data.dayNo)}`
-      );
-      if (ex.exists && !confirm(`Page already exists:\n${ex.path}\n\nPublishing will overwrite it. Continue?`)) {
-        return;
-      }
+      const q = new URLSearchParams({ pageType: data.pageType, sprintCode: data.sprintCode });
+      if (data.dayNo) q.set("dayNo", data.dayNo);
+      const ex = await api(`/api/exists?${q.toString()}`);
+      if (ex.exists && !confirm(`Page already exists:\n${ex.path}\n\nPublishing will overwrite it. Continue?`)) return;
     } catch (_) { /* non-fatal */ }
 
     const res = await api("/api/publish", { method: "POST", body: JSON.stringify(data) });
@@ -133,12 +188,15 @@ async function publish(e) {
 // ---- Init ---------------------------------------------------------------
 
 async function init() {
-  // Team roster
+  // Team roster -> daily members + planning capacity
   try {
     const { members } = await api("/api/team");
-    (members || []).forEach((n) => $("memberRows").appendChild(memberRow(n)));
-  } catch (_) { /* leave empty */ }
+    roster = members || [];
+  } catch (_) { roster = []; }
+  roster.forEach((n) => $("memberRows").appendChild(memberRow(n)));
+  roster.forEach((n) => $("capacityRows").appendChild(capacityRow(n)));
   if (!$("memberRows").children.length) $("memberRows").appendChild(memberRow());
+  if (!$("capacityRows").children.length) $("capacityRows").appendChild(capacityRow());
 
   // Sprints
   const sel = $("sprintSelect");
@@ -158,18 +216,30 @@ async function init() {
   other.value = OTHER;
   other.textContent = "Other… (new sprint)";
   sel.appendChild(other);
-  if (sel.options.length === 1) sel.value = OTHER; // only "Other" -> show input
+  if (sel.options.length === 1) sel.value = OTHER;
   toggleOther();
 
+  // Wiring
   sel.addEventListener("change", () => { toggleOther(); updatePath(); });
   $("sprintOther").addEventListener("input", updatePath);
   $("dayNo").addEventListener("input", updatePath);
-  updatePath();
+  $("pageType").addEventListener("change", applyType);
 
-  $("addMember").addEventListener("click", () => $("memberRows").appendChild(memberRow()));
-  $("addRisk").addEventListener("click", () => $("riskRows").appendChild(riskRow()));
-  $("addAction").addEventListener("click", () => $("actionRows").appendChild(actionRow()));
+  document.querySelectorAll("[data-add]").forEach((btn) =>
+    btn.addEventListener("click", () => ADDERS[btn.dataset.add](btn))
+  );
+
   $("standup-form").addEventListener("submit", publish);
+  applyType();
+}
+
+function applyType() {
+  const t = pageType();
+  document.querySelectorAll("[data-type]").forEach((el) =>
+    el.classList.toggle("hidden", el.dataset.type !== t)
+  );
+  $("dayWrap").classList.toggle("hidden", t !== "daily");
+  updatePath();
 }
 
 function toggleOther() {
@@ -178,8 +248,11 @@ function toggleOther() {
 
 function updatePath() {
   const code = sprintCode();
-  const day = $("dayNo").value || "?";
-  $("targetPath").textContent = code ? `→ Sprint ${code} / Day - ${day}` : "";
+  if (!code) return void ($("targetPath").textContent = "");
+  const t = pageType();
+  const leaf =
+    t === "daily" ? `Day - ${$("dayNo").value || "?"}` : t === "planning" ? "Sprint Planning" : "Sprint R2r";
+  $("targetPath").textContent = `→ Sprint ${code} / ${leaf}`;
 }
 
 // ---- Helpers ------------------------------------------------------------

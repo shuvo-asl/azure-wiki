@@ -14,8 +14,10 @@ function normalizeRoot(root) {
 const builders = {
   daily: ({ sprintCode, dayNo }) =>
     `${normalizeRoot(ROOT)}/Sprint ${sprintCode}/Day - ${dayNo}`,
-  // planning: ({ sprintCode }) => `${normalizeRoot(ROOT)}/Sprint ${sprintCode}/Sprint Planning`,
-  // r2r: ({ sprintCode }) => `${normalizeRoot(ROOT)}/Sprint ${sprintCode}/Sprint R2r`,
+  planning: ({ sprintCode }) =>
+    `${normalizeRoot(ROOT)}/Sprint ${sprintCode}/Sprint Planning`,
+  r2r: ({ sprintCode }) =>
+    `${normalizeRoot(ROOT)}/Sprint ${sprintCode}/Sprint R2r`,
 };
 
 export function sprintPath(sprintCode) {

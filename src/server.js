@@ -71,18 +71,14 @@ app.post("/api/publish", async (req, res) => {
   try {
     const pagePath = buildPath(pageType, {
       sprintCode: String(sprintCode).trim(),
-      dayNo: String(dayNo).trim(),
+      dayNo: dayNo === undefined ? undefined : String(dayNo).trim(),
     });
 
     const content = render(pageType, {
+      ...req.body,
       sprintCode: String(sprintCode).trim(),
-      dayNo: String(dayNo).trim(),
+      dayNo: dayNo === undefined ? undefined : String(dayNo).trim(),
       date: formatDate(),
-      members: req.body.members || [],
-      focusAreas: req.body.focusAreas || [],
-      risks: req.body.risks || [],
-      decisions: req.body.decisions || [],
-      actionItems: req.body.actionItems || [],
     });
 
     if (DRY_RUN) {

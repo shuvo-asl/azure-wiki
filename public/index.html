@@ -14,7 +14,7 @@
     <div class="max-w-4xl mx-auto p-4 sm:p-8">
       <header class="mb-6">
         <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          📝 Daily Standup Publisher
+          📝 Sprint Wiki Publisher
         </h1>
         <p class="text-sm text-slate-500 mt-1">
           Fill the form and publish straight to the Azure DevOps project wiki.
@@ -28,8 +28,8 @@
             <label class="block text-sm font-medium mb-1">Page type</label>
             <select id="pageType" class="w-full rounded-lg border-slate-300 border p-2 bg-slate-50">
               <option value="daily">Daily Standup</option>
-              <option value="planning" disabled>Sprint Planning (soon)</option>
-              <option value="r2r" disabled>Sprint R2r (soon)</option>
+              <option value="planning">Sprint Planning</option>
+              <option value="r2r">Sprint Review &amp; Retrospective</option>
             </select>
           </div>
           <div>
@@ -44,7 +44,7 @@
               class="w-full mt-2 rounded-lg border-slate-300 border p-2 hidden"
             />
           </div>
-          <div>
+          <div id="dayWrap">
             <label class="block text-sm font-medium mb-1">Day no</label>
             <input
               id="dayNo"
@@ -56,97 +56,203 @@
           </div>
         </section>
 
-        <!-- Team progress -->
-        <section class="bg-white rounded-xl shadow-sm p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-900">👥 Team Progress</h2>
-            <button type="button" id="addMember" class="text-sm text-indigo-600 hover:underline">
-              + Add member
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500">
-                  <th class="py-1 pr-2 font-medium w-28">Member</th>
-                  <th class="py-1 px-2 font-medium">Yesterday</th>
-                  <th class="py-1 px-2 font-medium">Today</th>
-                  <th class="py-1 px-2 font-medium">Blockers</th>
-                  <th class="py-1 pl-2 font-medium w-24 text-center">On&nbsp;leave</th>
-                  <th class="w-6"></th>
-                </tr>
-              </thead>
-              <tbody id="memberRows"></tbody>
-            </table>
-          </div>
-        </section>
+        <!-- =============== DAILY =============== -->
+        <div data-type="daily" class="space-y-6">
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">👥 Team Progress</h2>
+              <button type="button" data-add="member" class="text-sm text-indigo-600 hover:underline">+ Add member</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium w-28">Member</th>
+                    <th class="py-1 px-2 font-medium">Yesterday</th>
+                    <th class="py-1 px-2 font-medium">Today</th>
+                    <th class="py-1 px-2 font-medium">Blockers</th>
+                    <th class="py-1 pl-2 font-medium w-24 text-center">On&nbsp;leave</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="memberRows"></tbody>
+              </table>
+            </div>
+          </section>
 
-        <!-- Focus areas -->
-        <section class="bg-white rounded-xl shadow-sm p-5">
-          <label class="font-semibold text-slate-900 block mb-1">🚧 Focus Areas</label>
-          <p class="text-xs text-slate-500 mb-2">One item per line.</p>
-          <textarea
-            id="focusAreas"
-            rows="3"
-            class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"
-            placeholder="Client flight transfer implementation&#10;Centralize flight matching engine"
-          ></textarea>
-        </section>
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">🚧 Focus Areas</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+            <textarea id="focusAreas" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"
+              placeholder="Client flight transfer implementation&#10;Centralize flight matching engine"></textarea>
+          </section>
 
-        <!-- Blockers / risks -->
-        <section class="bg-white rounded-xl shadow-sm p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-900">🚫 Blockers / Risks</h2>
-            <button type="button" id="addRisk" class="text-sm text-indigo-600 hover:underline">
-              + Add risk
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500">
-                  <th class="py-1 pr-2 font-medium w-32">Owner</th>
-                  <th class="py-1 px-2 font-medium">Issue</th>
-                  <th class="py-1 px-2 font-medium">Next Action</th>
-                  <th class="w-6"></th>
-                </tr>
-              </thead>
-              <tbody id="riskRows"></tbody>
-            </table>
-          </div>
-          <p class="text-xs text-slate-400 mt-2">Leave empty to publish the default “None” row.</p>
-        </section>
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">🚫 Blockers / Risks</h2>
+              <button type="button" data-add="risk" class="text-sm text-indigo-600 hover:underline">+ Add risk</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium w-32">Owner</th>
+                    <th class="py-1 px-2 font-medium">Issue</th>
+                    <th class="py-1 px-2 font-medium">Next Action</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="riskRows"></tbody>
+              </table>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Leave empty to publish the default “None” row.</p>
+          </section>
 
-        <!-- Decisions -->
-        <section class="bg-white rounded-xl shadow-sm p-5">
-          <label class="font-semibold text-slate-900 block mb-1">📋 Decisions Made</label>
-          <p class="text-xs text-slate-500 mb-2">One item per line. Leave empty for the default placeholder.</p>
-          <textarea
-            id="decisions"
-            rows="2"
-            class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"
-          ></textarea>
-        </section>
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">📋 Decisions Made</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line. Leave empty for the default placeholder.</p>
+            <textarea id="decisions" rows="2" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+          </section>
 
-        <!-- Action items -->
-        <section class="bg-white rounded-xl shadow-sm p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-900">✅ Action Items</h2>
-            <button type="button" id="addAction" class="text-sm text-indigo-600 hover:underline">
-              + Add action
-            </button>
-          </div>
-          <div id="actionRows" class="space-y-2"></div>
-          <p class="text-xs text-slate-400 mt-2">Leave empty for the default placeholder.</p>
-        </section>
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">✅ Action Items</h2>
+              <button type="button" data-add="action" data-target="actionRows" class="text-sm text-indigo-600 hover:underline">+ Add action</button>
+            </div>
+            <div id="actionRows" class="space-y-2"></div>
+            <p class="text-xs text-slate-400 mt-2">Leave empty for the default placeholder.</p>
+          </section>
+        </div>
+
+        <!-- =============== PLANNING =============== -->
+        <div data-type="planning" class="space-y-6 hidden">
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">🎯 Sprint Goal</label>
+            <textarea id="sprintGoal" rows="2" class="w-full rounded-lg border-slate-300 border p-2"
+              placeholder="Ship the client flight transfer flow end to end."></textarea>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">👥 Capacity</h2>
+              <button type="button" data-add="capacity" class="text-sm text-indigo-600 hover:underline">+ Add member</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium w-32">Member</th>
+                    <th class="py-1 px-2 font-medium w-40">Capacity (days)</th>
+                    <th class="py-1 px-2 font-medium">Notes</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="capacityRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">📋 Committed Backlog</h2>
+              <button type="button" data-add="committed" class="text-sm text-indigo-600 hover:underline">+ Add item</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium">Item</th>
+                    <th class="py-1 px-2 font-medium w-32">Owner</th>
+                    <th class="py-1 px-2 font-medium w-28">Estimate</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="committedRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">🚧 Risks / Dependencies</h2>
+              <button type="button" data-add="prisk" class="text-sm text-indigo-600 hover:underline">+ Add risk</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium w-32">Owner</th>
+                    <th class="py-1 px-2 font-medium">Issue</th>
+                    <th class="py-1 px-2 font-medium">Next Action</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="priskRows"></tbody>
+              </table>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Leave empty to publish the default “None” row.</p>
+          </section>
+        </div>
+
+        <!-- =============== R2R =============== -->
+        <div data-type="r2r" class="space-y-6 hidden">
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">📦 Sprint Review — Delivered</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+            <textarea id="delivered" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">📊 Metrics</h2>
+              <button type="button" data-add="metric" class="text-sm text-indigo-600 hover:underline">+ Add metric</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500">
+                    <th class="py-1 pr-2 font-medium">Metric</th>
+                    <th class="py-1 px-2 font-medium w-40">Value</th>
+                    <th class="w-6"></th>
+                  </tr>
+                </thead>
+                <tbody id="metricRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">😀 What Went Well</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+            <textarea id="wentWell" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">😕 What Didn't Go Well</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+            <textarea id="wentWrong" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <label class="font-semibold text-slate-900 block mb-1">💡 Improvements</label>
+            <p class="text-xs text-slate-500 mb-2">One item per line.</p>
+            <textarea id="improvements" rows="3" class="w-full rounded-lg border-slate-300 border p-2 font-mono text-sm"></textarea>
+          </section>
+
+          <section class="bg-white rounded-xl shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-slate-900">✅ Action Items</h2>
+              <button type="button" data-add="action" data-target="r2rActionRows" class="text-sm text-indigo-600 hover:underline">+ Add action</button>
+            </div>
+            <div id="r2rActionRows" class="space-y-2"></div>
+            <p class="text-xs text-slate-400 mt-2">Leave empty for the default placeholder.</p>
+          </section>
+        </div>
 
         <!-- Submit -->
         <div class="flex items-center gap-3">
-          <button
-            type="submit"
-            id="publishBtn"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-5 py-2.5 disabled:opacity-50"
-          >
+          <button type="submit" id="publishBtn"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-5 py-2.5 disabled:opacity-50">
             Publish to Wiki
           </button>
           <span id="targetPath" class="text-sm text-slate-500 font-mono"></span>

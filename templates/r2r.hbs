@@ -1,0 +1,47 @@
+# Sprint Review & Retrospective – Sprint {{sprintCode}}
+**Date:** {{date}}
+
+---
+
+## 📦 Sprint Review — Delivered
+{{#each delivered}}
+- {{this}}
+{{/each}}
+
+---
+
+## 📊 Metrics
+
+| Metric | Value |
+|--------|-------|
+{{#each metrics}}
+| {{metric}} | {{value}} |
+{{/each}}
+
+---
+
+## 😀 What Went Well
+{{#each wentWell}}
+- {{this}}
+{{/each}}
+
+---
+
+## 😕 What Didn't Go Well
+{{#each wentWrong}}
+- {{this}}
+{{/each}}
+
+---
+
+## 💡 Improvements
+{{#each improvements}}
+- {{this}}
+{{/each}}
+
+---
+
+## ✅ Action Items
+{{#each actionItems}}
+- [ ] {{this}}
+{{/each}}

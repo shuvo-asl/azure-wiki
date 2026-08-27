@@ -1,0 +1,37 @@
+# Sprint Planning – Sprint {{sprintCode}}
+**Date:** {{date}}
+
+---
+
+## 🎯 Sprint Goal
+{{sprintGoal}}
+
+---
+
+## 👥 Capacity
+
+| Member | Capacity (days) | Notes |
+|--------|-----------------|-------|
+{{#each capacity}}
+| {{name}} | {{days}} | {{notes}} |
+{{/each}}
+
+---
+
+## 📋 Committed Backlog
+
+| Item | Owner | Estimate |
+|------|-------|----------|
+{{#each committedItems}}
+| {{item}} | {{owner}} | {{estimate}} |
+{{/each}}
+
+---
+
+## 🚧 Risks / Dependencies
+
+| Owner | Issue | Next Action |
+|-------|-------|-------------|
+{{#each risks}}
+| {{owner}} | {{issue}} | {{nextAction}} |
+{{/each}}

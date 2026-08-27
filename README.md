@@ -5,8 +5,19 @@ Fill a web form, hit **Publish**, and the daily standup is created/updated in yo
 
 Repo: <https://github.com/shuvo-asl/azure-wiki>
 
-> **V1 scope:** Daily Standup only. Sprint Planning and Sprint R2r are stubbed in the code
-> (template/path registry) and will be enabled next.
+## Page types
+
+Pick the type in the form; each renders its own template and publishes under `Sprint <code>/`:
+
+| Type | Wiki page | Template | Sections |
+|------|-----------|----------|----------|
+| **Daily Standup** | `Day - <n>` | `templates/daily.hbs` | Team Progress, Focus Areas, Blockers/Risks, Decisions, Action Items |
+| **Sprint Planning** | `Sprint Planning` | `templates/planning.hbs` | Sprint Goal, Capacity, Committed Backlog, Risks/Dependencies |
+| **Sprint Review & Retro** | `Sprint R2r` | `templates/r2r.hbs` | Delivered, Metrics, Went Well, Didn't Go Well, Improvements, Action Items |
+
+Only **Daily** takes a day number; Planning and R2r are one page per sprint. All templates are
+Handlebars files — edit wording/structure without touching code. Empty sections fall back to sensible
+placeholder rows.
 
 ## Quick start
 
